@@ -2,8 +2,8 @@ name: Hourly R Workflow
 
 on:
   schedule:
-    - cron: '0 * * * *'  # Runs at minute 0 of every hour
-  workflow_dispatch:      # Allows manual trigger from GitHub UI
+    - cron: '0 * * * *'
+  workflow_dispatch:
 
 jobs:
   run-script:
