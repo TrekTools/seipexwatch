@@ -89,4 +89,4 @@ head(seipex_timeseries)
 #dbExecute(con, "DELETE FROM seipex_tokens;")
 
 # Write the tokens table to the PostgreSQL database
-dbWriteTable(con, "seipex_timeseries", seipex_timeseries, row.names = FALSE, overwrite = FALSE)
+dbWriteTable(con, "seipex_timeseries", seipex_timeseries, row.names = FALSE, overwrite = FALSE, append = TRUE)
