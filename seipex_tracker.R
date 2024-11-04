@@ -248,6 +248,8 @@ pallet_data <- as.data.frame(pallet_data)
 
 pallet_data$rounded_time <- round_date(Sys.time(), unit = "hour")
 
+max_record <- dbGetQuery(con, "SELECT current_max FROM max_record;")
+
 pallet_timeseries <- pallet_data %>%
   select(
     sei_address,
@@ -262,6 +264,7 @@ pallet_timeseries <- pallet_data %>%
     rounded_time
   )
 
+  pallet_timeseries$record <- max_record
 
 # Append the contents of pallet_new to the PostgreSQL table seimap
 dbWriteTable(con, "pallet_timeseries", pallet_timeseries, row.names = FALSE, append = TRUE)
