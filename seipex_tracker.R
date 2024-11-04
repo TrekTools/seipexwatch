@@ -1,6 +1,7 @@
 library(httr)
 library(dplyr)
 library(tibble)
+library(purrr)
 library(RPostgres)
 library(lubridate)
 
@@ -83,10 +84,184 @@ seipex_timeseries <- seipex_tokens %>%
     rounded_time
   )
 
-head(seipex_timeseries)
-
 # Execute the DELETE statement
 #dbExecute(con, "DELETE FROM seipex_tokens;")
 
 # Write the tokens table to the PostgreSQL database
 dbWriteTable(con, "seipex_timeseries", seipex_timeseries, row.names = FALSE, overwrite = FALSE, append = TRUE)
+
+pallet1 <- paste0("https://rest.sei-apis.com/cosmwasm/wasm/v1/contract/sei152u2u0lqc27428cuf8dx48k8saua74m6nql5kgvsu4rfeqm547rsnhy4y9/smart/ewogICJ2ZXJpZmllZF9uZnRzIjogewogICAgImxpbWl0IjogMTAwCiAgfQp9")
+pallet2 <- paste0("https://rest.sei-apis.com/cosmwasm/wasm/v1/contract/sei152u2u0lqc27428cuf8dx48k8saua74m6nql5kgvsu4rfeqm547rsnhy4y9/smart/ewogICJ2ZXJpZmllZF9uZnRzIjogewogICAgImxpbWl0IjogMTAwLAogICAgInN0YXJ0X2FmdGVyIjogInNlaTE3dHZqOXYyM3cyOXJnZGV3cXBkN2RkMDNwamcybXA0NDNxNzZrZXg3c2NqcTJtMG0zcHJxcDJrczZjIgogIH0KfQ==")
+pallet3 <- paste0("https://rest.sei-apis.com/cosmwasm/wasm/v1/contract/sei152u2u0lqc27428cuf8dx48k8saua74m6nql5kgvsu4rfeqm547rsnhy4y9/smart/ewogICJ2ZXJpZmllZF9uZnRzIjogewogICAgImxpbWl0IjogMTAwLAogICAgInN0YXJ0X2FmdGVyIjogInNlaTFldXZkdG5qbmR4ZG50dTJwcTRqanB3enhqZGdzbGZ3ZXhtbGFodjNycXZ6d20yaHlnZnZxOWs2NnY0IgogIH0KfQ==")
+pallet4 <- paste0("https://rest.sei-apis.com/cosmwasm/wasm/v1/contract/sei152u2u0lqc27428cuf8dx48k8saua74m6nql5kgvsu4rfeqm547rsnhy4y9/smart/ewogICJ2ZXJpZmllZF9uZnRzIjogewogICAgImxpbWl0IjogMTAwLAogICAgInN0YXJ0X2FmdGVyIjogInNlaTFtZmp5M2x6YXZ0cHEwNDBmc3BhY2FueWg1NnNranUwOXhnOGswZmE1dmpuejNwYWM2d2ZzaDduYWxhIgogIH0KfQ==")
+pallet5 <- paste0("https://rest.sei-apis.com/cosmwasm/wasm/v1/contract/sei152u2u0lqc27428cuf8dx48k8saua74m6nql5kgvsu4rfeqm547rsnhy4y9/smart/ewogICJ2ZXJpZmllZF9uZnRzIjogewogICAgImxpbWl0IjogMTAwLAogICAgInN0YXJ0X2FmdGVyIjogInNlaTF0OHJ2NDJxZ3k5bjd2NmY0MGtkbHB1NTh0ZGU1bWZwZ2t5Y3g3Nzd3cW5ybHg1ZGR0NnVxZTYwdHJmIgogIH0KfQ==")
+pallet6 <- paste0("https://rest.sei-apis.com/cosmwasm/wasm/v1/contract/sei152u2u0lqc27428cuf8dx48k8saua74m6nql5kgvsu4rfeqm547rsnhy4y9/smart/ewogICJ2ZXJpZmllZF9uZnRzIjogewogICAgImxpbWl0IjogMTAwLAogICAgInN0YXJ0X2FmdGVyIjogInNlaTF6cjcyeHJ4aHFxcDJjaHRucmFsNDV0cHp2cmgyZmRyNXc5bTk2ajN3Y20wMzY1cWh4Z3JxZDlkeHpxIgogIH0KfQ==")
+
+pallet1 <- GET(pallet1)
+pallet1 <- content(pallet1,'parsed')
+pallet2 <- GET(pallet2)
+pallet2 <- content(pallet2,'parsed')
+pallet3 <- GET(pallet3)
+pallet3 <- content(pallet3,'parsed')
+pallet4 <- GET(pallet4)
+pallet4 <- content(pallet4,'parsed')
+pallet5 <- GET(pallet5)
+pallet5 <- content(pallet5,'parsed')
+pallet6 <- GET(pallet6)
+pallet6 <- content(pallet6,'parsed')
+
+# Assuming the lists are named pallet1$data, pallet2$data, ..., pallet6$data
+# Combine the lists into a single list
+combined_list <- c(pallet1$data, pallet2$data, pallet3$data, pallet4$data, pallet5$data, pallet6$data)
+
+# Convert the combined list to a data frame with more robust extraction
+pallet <- map_df(combined_list, ~ {
+  twitter_link <- NA
+  discord_link <- NA
+  
+  # Check if the socials field exists and is a non-empty list
+  if (!is.null(.x$socials) && length(.x$socials) > 0) {
+    for (social in .x$socials) {
+      if ("twitter" %in% names(social)) {
+        twitter_link <- social$twitter
+      }
+      if ("discord" %in% names(social)) {
+        discord_link <- social$discord
+      }
+    }
+  }
+  
+  tibble(
+    address = .x$address,
+    minter = .x$minter,
+    name = .x$name,
+    symbol = .x$symbol,
+    description = .x$description,
+    twitter = twitter_link,
+    discord = discord_link
+  )
+})
+
+pallet <- pallet %>% as.data.frame()
+
+# Placeholder list of addresses, assuming it's named `pallet$address`
+# Replace `pallet$address` with the actual data source
+addresses_list <- pallet$address
+
+# Function to get and parse data for each address
+get_address_data <- function(address) {
+  tryCatch({
+    # Construct the URL and make the GET request
+    slug_getter <- paste0("https://api.pallet.exchange/api/v2/nfts/", address, "/details")
+    response <- GET(slug_getter)
+    
+    # Check if the response status is successful
+    if (response$status_code != 200) {
+      warning("Non-200 status code for address: ", address)
+      return(NULL)
+    }
+    
+    # Parse the response content
+    address_data <- content(response, 'parsed')
+    
+    # Check if the response is valid
+    if (is.null(address_data) || !is.list(address_data)) {
+      warning("Invalid or unexpected response structure for address: ", address)
+      return(NULL)
+    }
+    
+    # Extract social media links
+    twitter_link <- NA
+    discord_link <- NA
+    website_link <- NA
+    
+    if (!is.null(address_data$socials) && is.list(address_data$socials)) {
+      for (social in address_data$socials) {
+        if (is.list(social)) {
+          if ("twitter" %in% names(social)) {
+            twitter_link <- social$twitter
+          }
+          if ("discord" %in% names(social)) {
+            discord_link <- social$discord
+          }
+          if ("website" %in% names(social)) {
+            website_link <- social$website
+          }
+        }
+      }
+    }
+    
+    # Create a tibble with extracted data
+    tibble(
+      sei_address = if (!is.null(address_data$sei_address)) address_data$sei_address else NA,
+      evm_address = if (!is.null(address_data$evm_address)) address_data$evm_address else NA,
+      creator = if (!is.null(address_data$creator)) address_data$creator else NA,
+      chain_id = if (!is.null(address_data$chain_id)) address_data$chain_id else NA,
+      creator_domain = if (!is.null(address_data$creator_info$domain)) address_data$creator_info$domain else NA,
+      creator_pfp = if (!is.null(address_data$creator_info$pfp)) address_data$creator_info$pfp else NA,
+      creator_sei_address = if (!is.null(address_data$creator_info$sei_address)) address_data$creator_info$sei_address else NA,
+      creator_evm_address = if (!is.null(address_data$creator_info$evm_address)) address_data$creator_info$evm_address else NA,
+      name = if (!is.null(address_data$name)) address_data$name else NA,
+      slug = if (!is.null(address_data$slug)) address_data$slug else NA,
+      symbol = if (!is.null(address_data$symbol)) address_data$symbol else NA,
+      description = if (!is.null(address_data$description)) address_data$description else NA,
+      pfp = if (!is.null(address_data$pfp)) address_data$pfp else NA,
+      banner = if (!is.null(address_data$banner)) address_data$banner else NA,
+      twitter = twitter_link,
+      discord = discord_link,
+      website = website_link,
+      supply = if (!is.null(address_data$supply)) address_data$supply else NA,
+      owners = if (!is.null(address_data$owners)) address_data$owners else NA,
+      auction_count = if (!is.null(address_data$auction_count)) address_data$auction_count else NA,
+      floor = if (!is.null(address_data$floor)) address_data$floor else NA,
+      volume = if (!is.null(address_data$volume)) address_data$volume else NA,
+      num_sales_24hr = if (!is.null(address_data$num_sales_24hr)) address_data$num_sales_24hr else NA,
+      volume_24hr = if (!is.null(address_data$volume_24hr)) address_data$volume_24hr else NA
+    )
+  }, error = function(e) {
+    message("Error encountered for address: ", address, " - ", e$message)
+    return(NULL)
+  })
+}
+
+# Initialize an empty list to collect results
+results_list <- list()
+
+# Iterate over each address in the addresses_list
+for (i in seq_along(addresses_list)) {
+  address <- addresses_list[[i]]
+  result <- get_address_data(address)
+  
+  # Only append non-NULL results
+  if (!is.null(result)) {
+    results_list[[length(results_list) + 1]] <- result
+  }
+  
+  Sys.sleep(0.15)  # Add delay for rate limiting
+}
+
+# Combine the list of tibbles into a single data frame
+pallet_data <- do.call(rbind, results_list)
+
+# Convert to a data frame if needed
+pallet_data <- as.data.frame(pallet_data)
+
+pallet_data$rounded_time <- round_date(Sys.time(), unit = "hour")
+
+pallet_timeseries <- pallet_data %>%
+  select(
+    sei_address,
+    evm_address,
+    name,
+    slug,
+    supply,
+    owners,
+    auction_count,
+    floor,
+    volume,
+    rounded_time
+  )
+
+
+# Append the contents of pallet_new to the PostgreSQL table seimap
+dbWriteTable(con, "pallet_timeseries", pallet_timeseries, row.names = FALSE, append = TRUE)
