@@ -1,0 +1,34 @@
+name: Hourly R Workflow
+
+on:
+  schedule:
+    - cron: '12 * * * *'
+  workflow_dispatch:
+
+jobs:
+  run-script:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up R
+        uses: r-lib/actions/setup-r@v2
+        with:
+          r-version: 'release'
+
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libpq-dev libcurl4-openssl-dev libssl-dev
+
+      - name: Install R packages
+        run: |
+          install.packages(c('httr', 'dplyr', 'tibble', 'RPostgres', 'lubridate'))
+        shell: Rscript {0}
+
+      - name: Run R script
+        env:
+          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+        run: Rscript seipex_tracker.R
