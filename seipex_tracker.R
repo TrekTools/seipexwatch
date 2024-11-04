@@ -265,3 +265,10 @@ pallet_timeseries <- pallet_data %>%
 
 # Append the contents of pallet_new to the PostgreSQL table seimap
 dbWriteTable(con, "pallet_timeseries", pallet_timeseries, row.names = FALSE, append = TRUE)
+
+# DELETE
+dbExecute(con, "DELETE FROM max_record;")
+# INSERT
+dbExecute(con, "INSERT INTO max_record (current_max) SELECT max(record) FROM pallet_timeseries;")
+
+dbExecute(con, "SELECT current_max FROM max_record;")
