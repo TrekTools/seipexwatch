@@ -275,3 +275,91 @@ dbExecute(con, "DELETE FROM max_record;")
 dbExecute(con, "INSERT INTO max_record (current_max) SELECT max(record)+1 FROM pallet_timeseries;")
 
 dbExecute(con, "SELECT current_max FROM max_record;")
+
+dbExecute(con, "DELETE FROM pallet_time_comparison;")
+
+dbExecute(con, "create table pallet_time_comparison as
+                (
+                  WITH latest_data AS (
+                      SELECT *
+                      FROM pallet_timeseries
+                      WHERE record = (SELECT current_max FROM max_record)
+                  ),
+                  hour_data AS (
+                      SELECT *
+                      FROM pallet_timeseries
+                      WHERE record = (SELECT max(record) FROM pallet_timeseries WHERE record < (SELECT current_max FROM max_record))
+                  ),
+                  day_data AS (
+                      SELECT *
+                      FROM pallet_timeseries
+                      WHERE record = (SELECT max(record) FROM pallet_timeseries WHERE record < (SELECT current_max - 23 FROM max_record))
+                  ),
+                  week_data AS (
+                      SELECT *
+                      FROM pallet_timeseries
+                      WHERE record = (SELECT max(record) FROM pallet_timeseries WHERE record < (SELECT current_max - 167 FROM max_record))
+                  )
+                  SELECT 
+                      l.slug,
+                  
+                      l.owners AS current_owners_1h,
+                      h.owners AS previous_owners_1h,
+                      l.owners - h.owners AS owners_diff_1h,
+                      CASE WHEN h.owners != 0 THEN ((l.owners - h.owners) / h.owners::float) * 100 ELSE NULL END AS owners_percent_diff_1h,
+                  
+                      l.auction_count AS current_auction_count_1h,
+                      h.auction_count AS previous_auction_count_1h,
+                      l.auction_count - h.auction_count AS auction_count_diff_1h,
+                      CASE WHEN h.auction_count != 0 THEN ((l.auction_count - h.auction_count) / h.auction_count::float) * 100 ELSE NULL END AS auction_count_percent_diff_1h,
+                  
+                      l.floor AS current_floor_1h,
+                      h.floor AS previous_floor_1h,
+                      l.floor - h.floor AS floor_diff_1h,
+                      CASE WHEN h.floor != 0 THEN ((l.floor - h.floor) / h.floor::float) * 100 ELSE NULL END AS floor_percent_diff_1h,
+                  
+                      l.volume AS current_volume_1h,
+                      h.volume AS previous_volume_1h,
+                      l.volume - h.volume AS volume_diff_1h,
+                      CASE WHEN h.volume != 0 THEN ((l.volume - h.volume) / h.volume::float) * 100 ELSE NULL END AS volume_percent_diff_1h
+                  --	 ,
+                  --    -- 1-day comparison
+                  --    d.owners AS previous_owners_1d,
+                  --    l.owners - d.owners AS owners_diff_1d,
+                  --    CASE WHEN d.owners != 0 THEN ((l.owners - d.owners) / d.owners::float) * 100 ELSE NULL END AS owners_percent_diff_1d,
+                  --
+                  --    d.auction_count AS previous_auction_count_1d,
+                  --    l.auction_count - d.auction_count AS auction_count_diff_1d,
+                  --    CASE WHEN d.auction_count != 0 THEN ((l.auction_count - d.auction_count) / d.auction_count::float) * 100 ELSE NULL END AS auction_count_percent_diff_1d,
+                  --
+                  --    d.floor AS previous_floor_1d,
+                  --    l.floor - d.floor AS floor_diff_1d,
+                  --    CASE WHEN d.floor != 0 THEN ((l.floor - d.floor) / d.floor::float) * 100 ELSE NULL END AS floor_percent_diff_1d,
+                  --
+                  --    d.volume AS previous_volume_1d,
+                  --    l.volume - d.volume AS volume_diff_1d,
+                  --    CASE WHEN d.volume != 0 THEN ((l.volume - d.volume) / d.volume::float) * 100 ELSE NULL END AS volume_percent_diff_1d,
+                  --
+                  --     1-week comparison
+                  --    w.owners AS previous_owners_1w,
+                  --    l.owners - w.owners AS owners_diff_1w,
+                  --    CASE WHEN w.owners != 0 THEN ((l.owners - w.owners) / w.owners::float) * 100 ELSE NULL END AS owners_percent_diff_1w,
+                  --
+                  --    w.auction_count AS previous_auction_count_1w,
+                  --    l.auction_count - w.auction_count AS auction_count_diff_1w,
+                  --    CASE WHEN w.auction_count != 0 THEN ((l.auction_count - w.auction_count) / w.auction_count::float) * 100 ELSE NULL END AS auction_count_percent_diff_1w,
+                  --
+                  --    w.floor AS previous_floor_1w,
+                  --    l.floor - w.floor AS floor_diff_1w,
+                  --    CASE WHEN w.floor != 0 THEN ((l.floor - w.floor) / w.floor::float) * 100 ELSE NULL END AS floor_percent_diff_1w,
+                  --
+                  --    w.volume AS previous_volume_1w,
+                  --    l.volume - w.volume AS volume_diff_1w,
+                  --    CASE WHEN w.volume != 0 THEN ((l.volume - w.volume) / w.volume::float) * 100 ELSE NULL END AS volume_percent_diff_1w
+                  
+                  FROM latest_data l
+                  JOIN hour_data h ON l.slug = h.slug
+                  --JOIN day_data d ON l.slug = d.slug
+                  --JOIN week_data w ON l.slug = w.slug
+                  ORDER BY volume_diff_1h DESC
+                );")
