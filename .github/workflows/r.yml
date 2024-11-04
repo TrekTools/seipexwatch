@@ -25,7 +25,7 @@ jobs:
 
       - name: Install R packages
         run: |
-          install.packages(c('httr', 'dplyr', 'tibble', 'RPostgres', 'lubridate'))
+          install.packages(c('httr', 'dplyr', 'tibble', 'purrr', 'RPostgres', 'lubridate'))
         shell: Rscript {0}
 
       - name: Run R script
