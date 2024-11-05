@@ -276,7 +276,7 @@ dbExecute(con, "INSERT INTO max_record (current_max) SELECT max(record)+1 FROM p
 
 dbExecute(con, "SELECT current_max FROM max_record;")
 
-dbExecute(con, "DELETE FROM pallet_time_comparison;")
+dbExecute(con, "DROP TABLE IF EXISTS pallet_time_comparison;")
 
 dbExecute(con, "create table pallet_time_comparison as
                 (
