@@ -260,7 +260,7 @@ result_time <- if (current_floored_time == mrt) {
 
 pallet_data$rounded_time <- result_time
 
-max_record <- dbGetQuery(con, "SELECT current_max FROM max_record;")
+max_record <- dbGetQuery(con, "SELECT current_max + 1 FROM max_record;")
 
 pallet_key_data <- pallet_data %>% 
   select(
