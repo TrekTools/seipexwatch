@@ -264,7 +264,7 @@ pallet_timeseries <- pallet_data %>%
     rounded_time
   )
 
-  pallet_timeseries$record <- rep(max_record,dim(pallet_timeseries)[1])
+pallet_timeseries$record <- max_record$current_max
 
 # Append the contents of pallet_new to the PostgreSQL table seimap
 dbWriteTable(con, "pallet_timeseries", pallet_timeseries, row.names = FALSE, append = TRUE)
