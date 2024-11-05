@@ -299,7 +299,9 @@ dbExecute(con, "DELETE FROM max_record;")
 # INSERT
 dbExecute(con, "INSERT INTO max_record (current_max) SELECT max(record) FROM pallet_timeseries;")
 
-dbExecute(con, "SELECT current_max FROM max_record;")
+mrn <- dbGetQuery(con, "SELECT current_max FROM max_record;")
+print("Max Record:")
+print(mrn$current_max)
 
 dbExecute(con, "DROP TABLE IF EXISTS pallet_key_data;")
 
