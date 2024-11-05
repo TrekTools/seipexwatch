@@ -301,6 +301,10 @@ dbExecute(con, "create table pallet_time_comparison as
                       WHERE record = (SELECT max(record) FROM pallet_timeseries WHERE record < (SELECT current_max - 167 FROM max_record))
                   )
                   SELECT 
+                      l.sei_address,
+                      l.evm_address,
+                      l."name",
+                        
                       l.slug,
                   
                       l.owners AS current_owners_1h,
