@@ -285,7 +285,7 @@ dbWriteTable(con, "pallet_timeseries", pallet_timeseries, row.names = FALSE, app
 # DELETE
 dbExecute(con, "DELETE FROM max_record;")
 # INSERT
-dbExecute(con, "INSERT INTO max_record (current_max) SELECT max(record)+1 FROM pallet_timeseries;")
+dbExecute(con, "INSERT INTO max_record (current_max) SELECT max(record) FROM pallet_timeseries;")
 
 dbExecute(con, "SELECT current_max FROM max_record;")
 
@@ -317,7 +317,7 @@ dbExecute(con, "create table pallet_time_comparison as
                       FROM pallet_timeseries
                       WHERE record = (SELECT max(record) FROM pallet_timeseries WHERE record < (SELECT current_max - 167 FROM max_record))
                   )
-                  SELECT 
+                  SELECT distinct
                       l.sei_address,
                       l.evm_address,
                       l.name,
