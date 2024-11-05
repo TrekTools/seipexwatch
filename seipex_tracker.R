@@ -250,6 +250,19 @@ pallet_data$rounded_time <- round_date(Sys.time(), unit = "hour")
 
 max_record <- dbGetQuery(con, "SELECT current_max FROM max_record;")
 
+pallet_key_data <- pallet_data %>% 
+  select(
+    sei_address,
+    evm_address,
+    name,
+    slug,
+    description,
+    twitter,
+    discord,
+    website,
+    pfp
+  )
+
 pallet_timeseries <- pallet_data %>%
   select(
     sei_address,
@@ -275,6 +288,10 @@ dbExecute(con, "DELETE FROM max_record;")
 dbExecute(con, "INSERT INTO max_record (current_max) SELECT max(record)+1 FROM pallet_timeseries;")
 
 dbExecute(con, "SELECT current_max FROM max_record;")
+
+dbExecute(con, "DROP TABLE IF EXISTS pallet_key_data;")
+
+dbWriteTable(con, "pallet_key_data", pallet_key_data, row.names = FALSE, append = TRUE)
 
 dbExecute(con, "DROP TABLE IF EXISTS pallet_time_comparison;")
 
