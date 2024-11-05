@@ -65,7 +65,7 @@ dbExecute(con, "DELETE FROM seipex_tokens;")
 # Write the tokens table to the PostgreSQL database
 dbWriteTable(con, "seipex_tokens", seipex_tokens, row.names = FALSE, overwrite = TRUE)
 
-seipex_tokens$rounded_time <- round_date(Sys.time(), unit = "hour")
+seipex_tokens$rounded_time <- floor_date(Sys.time(), unit = "hour")
 head(seipex_tokens)
 
 str(seipex_tokens)
