@@ -246,7 +246,19 @@ pallet_data <- do.call(rbind, results_list)
 # Convert to a data frame if needed
 pallet_data <- as.data.frame(pallet_data)
 
-pallet_data$rounded_time <- round_date(Sys.time(), unit = "hour")
+mrt <- dbGetQuery(con, "select max(rounded_time) from pallet_timeseries")
+mrt <- mrt$max
+# Get the current time floored to the last hour
+current_floored_time <- floor_date(Sys.time(), unit = "hour")
+
+# Conditional logic to determine which value to use
+result_time <- if (current_floored_time == mrt) {
+  round_date(Sys.time(), unit = "hour")
+} else {
+  current_floored_time
+}
+
+pallet_data$rounded_time <- result_time
 
 max_record <- dbGetQuery(con, "SELECT current_max FROM max_record;")
 
