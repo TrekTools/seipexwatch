@@ -320,7 +320,7 @@ dbExecute(con, "create table pallet_time_comparison as
                   SELECT 
                       l.sei_address,
                       l.evm_address,
-                      l."name",
+                      l.name,
                         
                       l.slug,
                   
