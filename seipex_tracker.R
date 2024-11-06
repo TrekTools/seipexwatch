@@ -306,7 +306,7 @@ print(mrn$current_max)
 # DELETE
 dbExecute(con, "DELETE FROM max_record;")
 # INSERT
-dbExecute(con, "INSERT INTO max_record (current_max) SELECT max(record)+1 FROM pallet_timeseries;")
+dbExecute(con, "INSERT INTO max_record (current_max) SELECT max(record) FROM pallet_timeseries;")
 
 mrn <- dbGetQuery(con, "SELECT current_max FROM max_record;")
 print("New Max Record:")
