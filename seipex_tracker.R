@@ -289,18 +289,24 @@ pallet_timeseries <- pallet_data %>%
     rounded_time
   )
 
+print("Max Record:")
+print(max_record$current_max)
 pallet_timeseries$record <- max_record$current_max
 
 # Append the contents of pallet_new to the PostgreSQL table seimap
 dbWriteTable(con, "pallet_timeseries", pallet_timeseries, row.names = FALSE, append = TRUE)
 
+mrn <- dbGetQuery(con, "SELECT current_max FROM max_record;")
+print("Old Max Record:")
+print(mrn$current_max)
+
 # DELETE
 dbExecute(con, "DELETE FROM max_record;")
 # INSERT
-dbExecute(con, "INSERT INTO max_record (current_max) SELECT max(record) FROM pallet_timeseries;")
+dbExecute(con, "INSERT INTO max_record (current_max) SELECT max(record)+1 FROM pallet_timeseries;")
 
 mrn <- dbGetQuery(con, "SELECT current_max FROM max_record;")
-print("Max Record:")
+print("New Max Record:")
 print(mrn$current_max)
 
 dbExecute(con, "DROP TABLE IF EXISTS pallet_key_data;")
