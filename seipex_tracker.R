@@ -323,7 +323,7 @@ dbExecute(con, "create table pallet_time_comparison as
                   WITH latest_data AS (
                       SELECT *
                       FROM pallet_timeseries
-                      WHERE record = (SELECT current_max FROM max_record)
+                      WHERE record = (SELECT max(record) FROM pallet_timeseries)
                   ),
                   hour_data AS (
                       SELECT *
