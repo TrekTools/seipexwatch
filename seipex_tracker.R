@@ -260,7 +260,9 @@ result_time <- if (current_floored_time == mrt) {
 
 pallet_data$rounded_time <- result_time
 
-max_record <- dbGetQuery(con, "SELECT current_max + 1 FROM max_record;")
+mrn <- dbGetQuery(con, "SELECT current_max + 1 FROM max_record;")
+print("Proposed Max Record:")
+print(mrn$current_max)
 
 pallet_key_data <- pallet_data %>% 
   select(
@@ -289,9 +291,9 @@ pallet_timeseries <- pallet_data %>%
     rounded_time
   )
 
-print("Max Record:")
-print(max_record$current_max)
-pallet_timeseries$record <- max_record$current_max
+
+
+pallet_timeseries$record <- mrn$current_max
 
 # Append the contents of pallet_new to the PostgreSQL table seimap
 dbWriteTable(con, "pallet_timeseries", pallet_timeseries, row.names = FALSE, append = TRUE)
